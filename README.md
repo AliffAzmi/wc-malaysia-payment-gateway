@@ -1,7 +1,7 @@
 **Malaysia Payment Gateway (DuitNow QR &amp; Custom bank transfer) for WooCommerce**
 ==========================
 
-### **Support Malaysia DuitNow QR pay and custom bank transfer. **
+### Support Malaysia DuitNow QR pay and custom bank transfer.
 
 **Custom Payment Gateways for WooCommerce** plugin features:
 
