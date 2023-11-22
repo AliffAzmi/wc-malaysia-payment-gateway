@@ -7,8 +7,8 @@ class Custom_Payment_Gateway_Admin_Column
      */
     public function __construct()
     {
-        add_filter("manage_edit-shop_order_columns", array($this, "column_header"), 20);
-        add_action("manage_shop_order_posts_custom_column", array($this, "column_content"));
+        add_filter("manage_woocommerce_page_wc-orders_columns", [$this, "column_header"], 20);
+        add_action("manage_woocommerce_page_wc-orders_custom_column", [$this, "column_content"], 20, 2);
     }
 
     /**
@@ -33,16 +33,13 @@ class Custom_Payment_Gateway_Admin_Column
      *
      * @param string $column_name.
      */
-    public function column_content($column_name)
+    public function column_content($column_name, $post_data)
     {
-        global $post;
         if ('wcuploadrcp' !== $column_name) {
             return;
         }
-        $order_id = $post->ID;
-        $order = new WC_Order($post->ID);
-        $receipt_upload_path = get_post_meta($order_id, 'receipt_upload_path', true);
-
+        $order = new WC_Order($post_data->id);
+        $receipt_upload_path = get_post_meta($post_data->id, 'receipt_upload_path', true);
         $payment_method = $order->get_payment_method();
         $allowed_payment_methods = array('duitnow_qr_payment_gateway', 'bank_transfer_payment_gateway');
 

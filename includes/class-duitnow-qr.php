@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
 class DuitNow_QR_Payment_Gateway extends WC_Payment_Gateway
 {
     private $asset_url;
-
+    // this for woocomerce payment setting page
     /**
      * Constructor for the gateway.
      */
@@ -166,14 +166,45 @@ class DuitNow_QR_Payment_Gateway extends WC_Payment_Gateway
                     $relative_path = str_replace($upload_dir['basedir'], '', $file_path);
                     $image_url = $base_url . $relative_path;
                 ?>
+                    <style>
+                        .image-container {
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            height: 300px;
+                            /* width: 200px; */
+                            /* Set a specific height for the container */
+                        }
 
-                    <div class=" text-center">
-                        <img src="<?= $this->asset_url . 'images/icon-duit-now.png' ?>" alt="DuitNow Icon" style="max-width: 80px;" />
-                        <div>
-                            <img src="<?= esc_url($image_url) ?>" alt="QR Code" style="max-width: 200px;" />
-                        </div>
+                        .image-container img {
+                            width: 70%;
+                            /* Adjust as needed */
+                            height: auto;
+                            max-height: 300px !important;
+                            /* Maintain aspect ratio */
+                        }
+
+                        .embed-container {
+                            position: relative;
+                            width: 100%;
+                            /* Set the width of the container */
+                            height: 0;
+                            padding-bottom: 56.25%;
+                            /* This creates a 16:9 aspect ratio (height/width) for the embed */
+                        }
+
+                        .embed-container embed {
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            width: 100%;
+                            height: 100%;
+                            /* This ensures the embed takes the full size of its container */
+                        }
+                    </style>
+                    <div class="image-container">
+                        <img src="<?= esc_url($image_url) ?>" alt="QR Code" />
                     </div>
-
                 <?php } ?>
 
             </div>
@@ -187,7 +218,7 @@ class DuitNow_QR_Payment_Gateway extends WC_Payment_Gateway
                 <h5>Upload receipt to get email confirmation</h5>
                 <input type="hidden" name="receipt_upload" class="receipt_upload" />
                 <input type="file" class="receipt_upload_file" name="duitnow_qr_receipt_upload" id="duitnow_qr_receipt_upload" accept="image/*,.pdf" />
-                <embed src='#' class="receipt_preview" id="duitnow_qr_receipt_preview" width="400" height="400" style="display: none;">
+                <embed src='#' class="receipt_preview" id="duitnow_qr_receipt_preview" width="100%" height="400" style="display: none;">
             </div>
         </div>
 <?php

@@ -27,7 +27,8 @@ jQuery(function ($) {
           var selection = image_frame.state().get('selection').first().toJSON()
           let url = new URL(selection.url)
           let path = url.pathname
-          $('.receipt_upload_path').val(path)
+
+          $('input[type=text]#receipt_upload_path').attr('value', path)
           $('#change_receipt_file').attr('src', selection.url)
           $('#receipt_upload_view_img').attr('src', selection.url)
         }
