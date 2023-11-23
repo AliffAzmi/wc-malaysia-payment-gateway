@@ -5,18 +5,22 @@ class Custom_Payment_Gateway_MetaBox
     /**
      * Constructor for the metabox.
      */
-    public function __construct($asset_url)
+    public function __construct(public $asset_url, public $defaultImg = "")
     {
         $this->asset_url = $asset_url;
         $this->defaultImg = $asset_url . 'images/no-image.png';
 
-        wp_enqueue_script('upload-receipt-order', $asset_url . 'js/upload-receipt-order.js', array('jquery'), time(), true);
+        wp_enqueue_script('upload-receipt-order', $asset_url . 'js/upload-receipt-order.js', ['jquery'], time(), true);
 
-        add_action('admin_enqueue_scripts', array($this, 'load_media_files'));
-        add_action('add_meta_boxes', array($this, 'add_meta_boxes_custom_payment_gateway'));
-        add_action("save_post", array($this, "receipt_upload_save"));
+        add_action('admin_enqueue_scripts', [$this, 'load_media_files']);
+        add_action('add_meta_boxes', [$this, 'add_meta_boxes_custom_payment_gateway'], 10, 2);
+        add_action("woocommerce_update_order", [$this, "receipt_upload_save"], 10, 2);
+        // add_action("edit_post", [$this, "pre_edit"], 10, 2);
     }
-
+    public function pre_edit($id, $post)
+    {
+        var_dump($id, $post);
+    }
     /**
      * Load WordPress media files.
      */
@@ -28,19 +32,18 @@ class Custom_Payment_Gateway_MetaBox
     /**
      * Initialise the meta box by post type and custom payment method.
      */
-    public function add_meta_boxes_custom_payment_gateway()
+    public function add_meta_boxes_custom_payment_gateway($post_type, $post)
     {
-        global $post;
-
-        if ($post->post_type === 'shop_order') {
-            $order_id = $post->ID;
+        // var_dump($post_type);
+        if ($post_type === 'woocommerce_page_wc-orders') {
+            $order_id = $post->id;
             $order = wc_get_order($order_id);
-
             $payment_method = $order->get_payment_method();
-            $allowed_payment_methods = array('duitnow_qr_payment_gateway', 'bank_transfer_payment_gateway');
+            $allowed_payment_methods = ['duitnow_qr_payment_gateway', 'bank_transfer_payment_gateway'];
 
             if (in_array($payment_method, $allowed_payment_methods)) {
-                add_meta_box('custom_payment_gateway_meta_box', 'Upload Receipt', array($this, 'render_meta_box'), 'shop_order', 'side', 'high');
+                // var_dump('babi');
+                add_meta_box('custom_payment_gateway_meta_box', 'Upload Receipt', [$this, 'render_meta_box'], 'woocommerce_page_wc-orders', 'side', 'high');
             }
         }
     }
@@ -52,16 +55,17 @@ class Custom_Payment_Gateway_MetaBox
      */
     public function render_meta_box($post)
     {
-        $order                 = $post instanceof \WC_Order ? $post : wc_get_order($post->ID);
+        $order                 = $post instanceof \WC_Order ? $post : wc_get_order($post->id);
         $payment_method        = $order->get_payment_method();
-        $receipt_upload_path   = get_post_meta($post->ID, 'receipt_upload_path', true);
-        $receipt_date_uploaded = get_post_meta($post->ID, 'receipt_upload_date_uploaded', true);
-        $receipt_upload_admin_note = get_post_meta($post->ID, 'receipt_upload_admin_note', true);
+        $receipt_upload_path   = get_post_meta($post->id, 'receipt_upload_path', true);
+        $receipt_date_uploaded = get_post_meta($post->id, 'receipt_upload_date_uploaded', true);
+        $receipt_upload_admin_note = get_post_meta($post->id, 'receipt_upload_admin_note', true);
         add_thickbox();
 
         $src = $receipt_upload_path ? $receipt_upload_path : $this->defaultImg; ?>
         <div style="display: flex;flex-direction: column;width: 100%;">
-            <img data-def="<?= $this->defaultImg ?>" id="change_receipt_file" title="Click to change" src="<?= $src ?>" style="width: 100%;min-height: 90px;border-radius: 4px;border: 1px solid #ccc;">
+
+            <embed src="<?= $src ?>" class="receipt_preview" id="change_receipt_file" width="100%" height="200" style="display: block;">
             <p class="hidden"><input type="text" name="receipt_upload_path" class="receipt_upload_path" id="receipt_upload_path" value="<?= $receipt_upload_path ?>"></p>
         </div>
         <p>
@@ -87,7 +91,8 @@ class Custom_Payment_Gateway_MetaBox
 
         <div id="examplePopup1" style="display:none">
             <div style="float:left;padding:10px;">
-                <img src="<?= $receipt_upload_path ?>" id="receipt_upload_view_img" width="500" />
+
+                <embed src="<?= $src ?>" class="receipt_preview" id="receipt_upload_view_img" width="500" height="350" style="display: block;">
             </div>
         </div>
 <?php
@@ -97,7 +102,7 @@ class Custom_Payment_Gateway_MetaBox
      * Save the meta box data.
      * @param int $post_id
      */
-    public function receipt_upload_save($post_id)
+    public function receipt_upload_save($post_id, $post)
     {
         if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
             return;

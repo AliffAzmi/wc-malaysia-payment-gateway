@@ -27,6 +27,7 @@ function init_custom_payment_gateway()
         /**
          * This class is use to create metabox and show receipt in admin order page.
          */
+
         $metabox = new Custom_Payment_Gateway_MetaBox($asset_url);
 
         /**
